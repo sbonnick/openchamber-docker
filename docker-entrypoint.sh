@@ -82,7 +82,7 @@ cleanup_stale_files() {
         if [ -d "/proc/${pid}" ]; then
           # Check whether the process appears to be OpenChamber/OpenCode (by cmdline)
           cmd=$(tr '\0' ' ' < "/proc/${pid}/cmdline" 2>/dev/null || true)
-          if echo "$cmd" | grep -qE 'openchamber|opencode|bun|node'; then
+          if echo "$cmd" | grep -qE '\b(openchamber|opencode|bun|node)\b'; then
             echo "[entrypoint] leaving $f (pid ${pid} appears to be: ${cmd})"
             continue
           fi
