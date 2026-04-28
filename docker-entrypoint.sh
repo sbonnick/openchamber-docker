@@ -71,6 +71,31 @@ if [ -f "${SSH_PUBLIC_KEY_PATH}" ]; then
   cat "${SSH_PUBLIC_KEY_PATH}"
 fi
 
+# Remove stale pid/lock files left in mounted data directories to avoid false "already running" errors
+cleanup_stale_files() {
+  for d in "${HOME}/.local/share/opencode" "${HOME}/.local/state" "${OPENCODE_CONFIG_DIR}" "${HOME}/.config/openchamber"; do
+    [ -d "$d" ] || continue
+    for f in "$d"/*.pid "$d"/*.lock; do
+      [ -e "$f" ] || continue
+      pid=$(sed -n '1p' "$f" 2>/dev/null || true)
+      if echo "${pid}" | grep -qE '^[0-9]+$'; then
+        if [ -d "/proc/${pid}" ]; then
+          # Check whether the process appears to be OpenChamber/OpenCode (by cmdline)
+          cmd=$(tr '\0' ' ' < "/proc/${pid}/cmdline" 2>/dev/null || true)
+          if echo "$cmd" | grep -qE 'openchamber|opencode|bun|node'; then
+            echo "[entrypoint] leaving $f (pid ${pid} appears to be: ${cmd})"
+            continue
+          fi
+          # process exists but doesn't look like OpenChamber/OpenCode -> treat as stale
+        fi
+      fi
+      echo "[entrypoint] removing stale lock/pid file: $f"
+      run_cmd rm -f "$f" 2>/dev/null || true
+    done
+  done
+}
+cleanup_stale_files
+
 if [ "$#" -gt 0 ]; then
   exec_cmd "$@"
 fi
