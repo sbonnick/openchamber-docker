@@ -82,10 +82,15 @@ cleanup_stale_files() {
         if [ -d "/proc/${pid}" ]; then
           # Check whether the process appears to be OpenChamber/OpenCode (by cmdline)
           cmd=$(tr '\0' ' ' < "/proc/${pid}/cmdline" 2>/dev/null || true)
-          if echo "$cmd" | grep -qE '\b(openchamber|opencode|bun|node)\b'; then
+          # Only treat the process as OpenChamber/OpenCode if one of the
+          # known program names appears as a separate argument (surrounded by
+          # start/space and space/end). This avoids matching names like
+          # "openchamber-entrypoint" which contain the substring "openchamber"
+          # but are not the server process.
+          if echo "$cmd" | grep -qE '(^| )(openchamber|opencode|bun|node)( |$)'; then
             echo "[entrypoint] leaving $f (pid ${pid} appears to be: ${cmd})"
             continue
-          fi
+              fi
           # process exists but doesn't look like OpenChamber/OpenCode -> treat as stale
         fi
       fi
