@@ -71,36 +71,6 @@ if [ -f "${SSH_PUBLIC_KEY_PATH}" ]; then
   cat "${SSH_PUBLIC_KEY_PATH}"
 fi
 
-# Remove stale pid/lock files left in mounted data directories to avoid false "already running" errors
-cleanup_stale_files() {
-  for d in "${HOME}/.local/share/opencode" "${HOME}/.local/state" "${OPENCODE_CONFIG_DIR}" "${HOME}/.config/openchamber"; do
-    [ -d "$d" ] || continue
-    for f in "$d"/*.pid "$d"/*.lock; do
-      [ -e "$f" ] || continue
-      pid=$(sed -n '1p' "$f" 2>/dev/null || true)
-      if echo "${pid}" | grep -qE '^[0-9]+$'; then
-        if [ -d "/proc/${pid}" ]; then
-          # Check whether the process appears to be OpenChamber/OpenCode (by cmdline)
-          cmd=$(tr '\0' ' ' < "/proc/${pid}/cmdline" 2>/dev/null || true)
-          # Only treat the process as OpenChamber/OpenCode if one of the
-          # known program names appears as a separate argument (surrounded by
-          # start/space and space/end). This avoids matching names like
-          # "openchamber-entrypoint" which contain the substring "openchamber"
-          # but are not the server process.
-          if echo "$cmd" | grep -qE '(^| )(openchamber|opencode|bun|node)( |$)'; then
-            echo "[entrypoint] leaving $f (pid ${pid} appears to be: ${cmd})"
-            continue
-              fi
-          # process exists but doesn't look like OpenChamber/OpenCode -> treat as stale
-        fi
-      fi
-      echo "[entrypoint] removing stale lock/pid file: $f"
-      run_cmd rm -f "$f" 2>/dev/null || true
-    done
-  done
-}
-cleanup_stale_files
-
 if [ "$#" -gt 0 ]; then
   exec_cmd "$@"
 fi
@@ -112,6 +82,82 @@ set -- openchamber serve \
 
 if [ -n "${OPENCHAMBER_UI_PASSWORD:-}" ]; then
   set -- "$@" --ui-password "${OPENCHAMBER_UI_PASSWORD}"
+fi
+
+# If something is already listening on the target port, try to terminate it
+# so OpenChamber can bind the port. We look for sockets in /proc/net/{tcp,tcp6},
+# map their inodes to owning PIDs, and attempt a graceful then forceful kill.
+PORT="${OPENCHAMBER_PORT:-3000}"
+hex=$(printf '%04x' "$PORT")
+inodes=""
+for netfile in /proc/net/tcp /proc/net/tcp6; do
+  [ -r "$netfile" ] || continue
+  for inode in $(awk -v p=":${hex}$" 'NR>1 && $2 ~ p {print $10}' "$netfile" 2>/dev/null); do
+    [ -z "$inode" ] || inodes="$inodes $inode"
+  done
+done
+
+pids_to_kill=""
+for inode in $inodes; do
+  [ -z "$inode" ] && continue
+  for pid_dir in /proc/[0-9]*; do
+    pid=$(basename "$pid_dir")
+    fd_dir="$pid_dir/fd"
+    [ -d "$fd_dir" ] || continue
+    for fd in "$fd_dir"/*; do
+      link=$(readlink "$fd" 2>/dev/null || true)
+      [ -z "$link" ] && continue
+      case "$link" in
+        socket:\[$inode\]) pids_to_kill="$pids_to_kill $pid"; break 2;;
+      esac
+    done
+  done
+done
+
+# Dedupe PIDs
+pids_final=""
+for pid in $pids_to_kill; do
+  found=0
+  for seen in $pids_final; do
+    if [ "$pid" = "$seen" ]; then
+      found=1
+      break
+    fi
+  done
+  if [ "$found" -eq 0 ] 2>/dev/null; then
+    pids_final="$pids_final $pid"
+  fi
+done
+
+if [ -n "$pids_final" ]; then
+  echo "[entrypoint] found processes listening on port $PORT:$pids_final"
+  for pid in $pids_final; do
+    [ -z "$pid" ] && continue
+    if [ "$pid" = "$$" ] || [ "$pid" = "1" ]; then
+      echo "[entrypoint] skipping kill of pid $pid (entrypoint/init)"
+      continue
+    fi
+    echo "[entrypoint] terminating pid $pid listening on port $PORT"
+    kill "$pid" 2>/dev/null || true
+    sleep 1
+    if [ -d "/proc/$pid" ]; then
+      echo "[entrypoint] pid $pid still alive; sending SIGKILL"
+      kill -KILL "$pid" 2>/dev/null || true
+    fi
+  done
+
+  # wait up to 5 seconds for processes to disappear
+  i=0
+  while [ $i -lt 5 ]; do
+    still=0
+    for pid in $pids_final; do
+      [ -z "$pid" ] && continue
+      if [ -d "/proc/$pid" ]; then still=1; break; fi
+    done
+    [ $still -eq 0 ] && break
+    i=$((i+1))
+    sleep 1
+  done
 fi
 
 echo "[entrypoint] starting OpenChamber on ${OPENCHAMBER_HOST:-0.0.0.0}:${OPENCHAMBER_PORT:-3000}"
