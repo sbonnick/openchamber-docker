@@ -84,81 +84,15 @@ if [ -n "${OPENCHAMBER_UI_PASSWORD:-}" ]; then
   set -- "$@" --ui-password "${OPENCHAMBER_UI_PASSWORD}"
 fi
 
-# If something is already listening on the target port, try to terminate it
-# so OpenChamber can bind the port. We look for sockets in /proc/net/{tcp,tcp6},
-# map their inodes to owning PIDs, and attempt a graceful then forceful kill.
+# Remove a stale per-port PID file (if present) instead of trying to kill
+# processes. The PID file path is per-port and lives under the user's
+# config directory.
 PORT="${OPENCHAMBER_PORT:-3000}"
-hex=$(printf '%04x' "$PORT")
-inodes=""
-for netfile in /proc/net/tcp /proc/net/tcp6; do
-  [ -r "$netfile" ] || continue
-  for inode in $(awk -v p=":${hex}$" 'NR>1 && $2 ~ p {print $10}' "$netfile" 2>/dev/null); do
-    [ -z "$inode" ] || inodes="$inodes $inode"
-  done
-done
-
-pids_to_kill=""
-for inode in $inodes; do
-  [ -z "$inode" ] && continue
-  for pid_dir in /proc/[0-9]*; do
-    pid=$(basename "$pid_dir")
-    fd_dir="$pid_dir/fd"
-    [ -d "$fd_dir" ] || continue
-    for fd in "$fd_dir"/*; do
-      link=$(readlink "$fd" 2>/dev/null || true)
-      [ -z "$link" ] && continue
-      case "$link" in
-        socket:\[$inode\]) pids_to_kill="$pids_to_kill $pid"; break 2;;
-      esac
-    done
-  done
-done
-
-# Dedupe PIDs
-pids_final=""
-for pid in $pids_to_kill; do
-  found=0
-  for seen in $pids_final; do
-    if [ "$pid" = "$seen" ]; then
-      found=1
-      break
-    fi
-  done
-  if [ "$found" -eq 0 ] 2>/dev/null; then
-    pids_final="$pids_final $pid"
-  fi
-done
-
-if [ -n "$pids_final" ]; then
-  echo "[entrypoint] found processes listening on port $PORT:$pids_final"
-  for pid in $pids_final; do
-    [ -z "$pid" ] && continue
-    if [ "$pid" = "$$" ] || [ "$pid" = "1" ]; then
-      echo "[entrypoint] skipping kill of pid $pid (entrypoint/init)"
-      continue
-    fi
-    echo "[entrypoint] terminating pid $pid listening on port $PORT"
-    kill "$pid" 2>/dev/null || true
-    sleep 1
-    if [ -d "/proc/$pid" ]; then
-      echo "[entrypoint] pid $pid still alive; sending SIGKILL"
-      kill -KILL "$pid" 2>/dev/null || true
-    fi
-  done
-
-  # wait up to 5 seconds for processes to disappear
-  i=0
-  while [ $i -lt 5 ]; do
-    still=0
-    for pid in $pids_final; do
-      [ -z "$pid" ] && continue
-      if [ -d "/proc/$pid" ]; then still=1; break; fi
-    done
-    [ $still -eq 0 ] && break
-    i=$((i+1))
-    sleep 1
-  done
+PID_FILE="${HOME}/.config/openchamber/.run/openchamber-${PORT}.pid"
+if [ -f "$PID_FILE" ]; then
+  echo "[entrypoint] removing stale pid file: $PID_FILE"
+  run_cmd rm -f "$PID_FILE" 2>/dev/null || true
 fi
 
-echo "[entrypoint] starting OpenChamber on ${OPENCHAMBER_HOST:-0.0.0.0}:${OPENCHAMBER_PORT:-3000}"
+echo "[entrypoint] starting OpenChamber on ${OPENCHAMBER_HOST:-0.0.0.0}:${PORT}"
 exec_cmd "$@"
