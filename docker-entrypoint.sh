@@ -88,7 +88,7 @@ fi
 # processes. The PID file path is per-port and lives under the user's
 # config directory.
 PORT="${OPENCHAMBER_PORT:-3000}"
-PID_FILE="${HOME}/.config/openchamber/.run/openchamber-${PORT}.pid"
+PID_FILE="${HOME}/.config/openchamber/run/openchamber-${PORT}.pid"
 if [ -f "$PID_FILE" ]; then
   echo "[entrypoint] removing stale pid file: $PID_FILE"
   run_cmd rm -f "$PID_FILE" 2>/dev/null || true
