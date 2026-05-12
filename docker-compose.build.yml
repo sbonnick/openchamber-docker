@@ -3,6 +3,6 @@ services:
     build:
       context: .
       args:
-        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.9.10}"
-        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.14.28}"
+        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.10.4}"
+        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.14.48}"
     image: "${IMAGE_NAME:-ghcr.io/sbonnick/openchamber-docker}:latest"
