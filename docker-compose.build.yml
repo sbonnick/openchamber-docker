@@ -4,5 +4,5 @@ services:
       context: .
       args:
         OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.11.2}"
-        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.14.48}"
+        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.15.5}"
     image: "${IMAGE_NAME:-ghcr.io/sbonnick/openchamber-docker}:latest"
