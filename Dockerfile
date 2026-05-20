@@ -24,6 +24,8 @@ WORKDIR /home/openchamber
 
 ARG OPENCODE_VERSION=1.14.28
 
+RUN ln -s /bin/bash /bash
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
   bash \
   ca-certificates \
