@@ -22,7 +22,7 @@ RUN mkdir -p "${BUN_INSTALL}" \
 FROM oven/bun:1 AS runtime
 WORKDIR /home/openchamber
 
-ARG OPENCODE_VERSION=1.15.11
+ARG OPENCODE_VERSION=1.15.13
 
 RUN ln -s /bin/bash /bash
 
@@ -64,7 +64,7 @@ RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/opench
 USER root
 
 # cloudflared 2026.3.0 - update digest explicitly when upgrading
-COPY --from=cloudflare/cloudflared@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0 /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+#COPY --from=cloudflare/cloudflared@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0 /usr/local/bin/cloudflared /usr/local/bin/cloudflared
 
 COPY --chmod=0755 docker-entrypoint.sh /home/openchamber/openchamber-entrypoint.sh
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules /home/openchamber/node_modules
