@@ -1,6 +1,6 @@
 # OpenChamber + OpenCode Docker
 
-This builds a small local image for the OpenChamber web UI on the latest Ubuntu LTS base, installs Bun directly during the OpenChamber build, and installs OpenCode with Bun.
+This builds a small local image for the OpenChamber web UI on the latest Node LTS slim base, installs Bun directly during the OpenChamber build, and installs OpenCode with Bun.
 
 ## Run
 
@@ -25,7 +25,7 @@ Set `OPENCHAMBER_UI_PASSWORD` in `.env` to password-protect the browser UI.
 
 ## Image Notes
 
-The OpenChamber image uses `ubuntu:24.04` (latest LTS) for both build and runtime stages. Build-only packages are kept in the build stage while the runtime stage receives the Bun-installed OpenChamber package, the directly installed Bun runtime, and the Bun-installed OpenCode package. OpenChamber starts that local OpenCode binary inside the same container.
+The OpenChamber image uses `node:lts-slim` for both build and runtime stages. Build-only packages are kept in the build stage while the runtime stage receives the Bun-installed OpenChamber package, the directly installed Bun runtime, and the Bun-installed OpenCode package. OpenChamber starts that local OpenCode binary inside the same container.
 
 ## Persistent Data
 

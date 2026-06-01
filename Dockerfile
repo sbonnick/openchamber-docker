@@ -1,41 +1,35 @@
 # syntax=docker/dockerfile:1
-FROM ubuntu:24.04 AS base
+FROM oven/bun:1 AS base
+WORKDIR /app
+
+FROM base AS deps
+
+ARG OPENCHAMBER_VERSION=1.11.7
 
 ENV BUN_INSTALL=/opt/bun \
     PATH=/opt/bun/bin:${PATH}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  bash \
-  ca-certificates \
-  curl \
-  unzip \
-  && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL https://bun.sh/install | bash \
-  && mv /root/.bun "${BUN_INSTALL}" \
-  && rm -rf "${BUN_INSTALL}/install/cache" \
-  && ln -s /opt/bun/bin/bun /usr/local/bin/bun
-
-WORKDIR /app
-
-FROM base AS deps
-
-ARG OPENCHAMBER_VERSION=latest
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential \
+  ca-certificates \
   python3 \
-  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p "${BUN_INSTALL}" \
   && bun install -g "@openchamber/web@${OPENCHAMBER_VERSION}" \
   && rm -rf "${BUN_INSTALL}/install/cache" /root/.cache/node-gyp
 
-FROM base AS runtime
+FROM oven/bun:1 AS runtime
 WORKDIR /home/openchamber
 
-ARG OPENCODE_VERSION=latest
+ARG OPENCODE_VERSION=1.15.13
 
 RUN ln -s /bin/bash /bash
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  bash \
+  ca-certificates \
+  curl \
   git \
   gosu \
   less \
@@ -50,9 +44,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get install -y --no-install-recommends gh \
   && rm -rf /var/lib/apt/lists/*
 
-# Replace the base image's 'ubuntu' user (UID 1000) with 'openchamber'
+# Replace the base image's 'bun' user (UID 1000) with 'openchamber'
 # so mounted volumes with 1000:1000 ownership work correctly.
-RUN userdel -r ubuntu \
+RUN userdel bun \
   && groupadd -g 1000 openchamber \
   && useradd -u 1000 -g 1000 -m -s /bin/bash openchamber \
   && chown -R openchamber:openchamber /home/openchamber
