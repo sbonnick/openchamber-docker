@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unzip \
   && rm -rf /var/lib/apt/lists/* \
   && curl -fsSL https://bun.sh/install | bash \
-  && mv /root/.bun "${BUN_INSTALL}" \
   && rm -rf "${BUN_INSTALL}/install/cache" \
   && ln -s /opt/bun/bin/bun /usr/local/bin/bun
 
