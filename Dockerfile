@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM base AS deps
 
-ARG OPENCHAMBER_VERSION=1.11.7
+ARG OPENCHAMBER_VERSION=1.12.0
 
 ENV BUN_INSTALL=/opt/bun \
     PATH=/opt/bun/bin:${PATH}
@@ -23,18 +23,20 @@ FROM oven/bun:1 AS runtime
 WORKDIR /home/openchamber
 
 ARG OPENCODE_VERSION=1.15.13
+ARG NODE_VERSION=22
 
 RUN ln -s /bin/bash /bash
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  bash \
   ca-certificates \
   curl \
+  && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+  && apt-get install -y --no-install-recommends \
+  bash \
   git \
   gosu \
   less \
   nodejs \
-  npm \
   openssh-client \
   python3 \
   && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -62,9 +64,6 @@ RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/opench
   npm install -g "opencode-ai@${OPENCODE_VERSION}"
 
 USER root
-
-# cloudflared 2026.3.0 - update digest explicitly when upgrading
-#COPY --from=cloudflare/cloudflared@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0 /usr/local/bin/cloudflared /usr/local/bin/cloudflared
 
 COPY --chmod=0755 docker-entrypoint.sh /home/openchamber/openchamber-entrypoint.sh
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules /home/openchamber/node_modules
