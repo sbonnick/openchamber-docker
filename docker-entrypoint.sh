@@ -103,25 +103,9 @@ fi
 OPENCHAMBER_HOST="${OPENCHAMBER_HOST:-0.0.0.0}"
 export OPENCHAMBER_HOST
 
-# OpenChamber web server in-container listen port is fixed at 6000 to
-# match the EXPOSE 6000 declaration in the Dockerfile and the
-# `${OPENCHAMBER_PORT:-6000}:6000` mapping in docker-compose.yml. The
-# `--port` and `--host` flags are passed to `bun packages/web/bin/cli.js`
-# below. To change the host port, set OPENCHAMBER_PORT in .env; to change
-# the in-container port, update the Dockerfile EXPOSE, the compose
-# mapping, the healthcheck, and this fallback together.
-OPENCHAMBER_LISTEN_PORT="${OPENCHAMBER_LISTEN_PORT:-6000}"
+OPENCHAMBER_LISTEN_PORT="${OPENCHAMBER_LISTEN_PORT:-5173}"
 
-# Start ttyd (browser terminal) wrapping a persistent tmux session.
-# The tmux session survives browser disconnects, so users can reconnect
-# to the same workspace from any browser.
-#
-# TTYD in-container listen port is fixed at 6001 to match the EXPOSE 6001
-# declaration in the Dockerfile and the `${TTYD_PORT:-6001}:6001` mapping
-# in docker-compose.yml. To change the host port, set TTYD_PORT in .env;
-# to change the in-container port, update the Dockerfile EXPOSE, this
-# fallback, and the compose mapping together.
-TTYD_LISTEN_PORT="${TTYD_LISTEN_PORT:-6001}"
+TTYD_LISTEN_PORT="${TTYD_LISTEN_PORT:-5174}"
 TTYD_LOG="${HOME}/.local/share/opencode/log/ttyd.log"
 mkdir -p "$(dirname "${TTYD_LOG}")"
 

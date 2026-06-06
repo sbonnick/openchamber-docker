@@ -10,20 +10,10 @@ docker compose -f docker-compose.build.yml build
 docker compose up -d
 ```
 
-Open `http://localhost:6000` for the OpenChamber UI and `http://localhost:6001/terminal` for the browser terminal. Override the host ports with `OPENCHAMBER_PORT` and `TTYD_PORT` in `.env` (keep `TTYD_PORT` one above `OPENCHAMBER_PORT`).
+Open `http://localhost:5173` for the OpenChamber UI and `http://localhost:5174/terminal` for the browser terminal. Override the host ports with `OPENCHAMBER_PORT` and `TTYD_PORT` in `.env` (keep `TTYD_PORT` one above `OPENCHAMBER_PORT`).
 
 Set `OPENCHAMBER_UI_PASSWORD` in `.env` to password-protect both the browser UI and the terminal (HTTP Basic auth on ttyd).
 
-## Ports
-
-The image exposes two TCP ports inside the container, declared by `EXPOSE 6000 6001` in the `Dockerfile`. Both services listen on the same port inside the container that they are exposed on to the host:
-
-| Service             | Dockerfile `EXPOSE` | In-container listen port | Env var            | Default host port |
-|---------------------|--------------------:|-------------------------:|--------------------|------------------:|
-| OpenChamber web UI  | `6000`              | `6000`                   | `OPENCHAMBER_PORT` | `6000`            |
-| ttyd (browser term) | `6001`              | `6001`                   | `TTYD_PORT`        | `6001`            |
-
-`docker-compose.yml` maps host port to in-container port 1:1 with `${OPENCHAMBER_PORT:-6000}:6000` and `${TTYD_PORT:-6001}:6001`. The env vars only control the **host** port; the in-container listen ports are fixed (6000 and 6001) and must stay in sync with the `EXPOSE` line, the entrypoint `OPENCHAMBER_LISTEN_PORT`/`TTYD_LISTEN_PORT` fallbacks, the healthcheck URL, and the compose `ports` mapping. The OpenChamber web server is started with `--port ${OPENCHAMBER_LISTEN_PORT:-6000} --host ${OPENCHAMBER_HOST:-0.0.0.0}` in `docker-entrypoint.sh`; ttyd is started with `-p ${TTYD_LISTEN_PORT:-6001}`.
 
 ## Compose Files
 
@@ -36,11 +26,11 @@ The image exposes two TCP ports inside the container, declared by `EXPOSE 6000 6
 
 ## Image Notes
 
-The OpenChamber image uses `oven/bun:1` for both build and runtime stages. Build-only packages are kept in the build stage while the runtime stage receives the Bun-installed OpenChamber package, the npm-installed OpenCode binary, the Node.js runtime (pinned via `NODE_VERSION` in the Dockerfile), the GitHub CLI, and `ttyd` + `tmux` for the browser terminal. The image `EXPOSE`s `6000` (OpenChamber web UI) and `6001` (ttyd) — see the [Ports](#ports) section. OpenChamber starts that local OpenCode binary inside the same container.
+The OpenChamber image uses `oven/bun:1` for both build and runtime stages. Build-only packages are kept in the build stage while the runtime stage receives the Bun-installed OpenChamber package, the npm-installed OpenCode binary, the Node.js runtime (pinned via `NODE_VERSION` in the Dockerfile), the GitHub CLI, and `ttyd` + `tmux` for the browser terminal. The image `EXPOSE`s `5173` (OpenChamber web UI) and `5174` (ttyd)
 
 ## Browser Terminal
 
-The container ships a ttyd instance wrapping a persistent tmux session named `openchamber`. The tmux server keeps running in the background, so the session survives browser disconnects and you can reconnect to the same workspace from any browser. ttyd binds to in-container port `6001` (declared by `EXPOSE 6001` in the `Dockerfile`; overridable via the `TTYD_LISTEN_PORT` env var) and is launched by `docker-entrypoint.sh` as `ttyd -p ${TTYD_LISTEN_PORT:-6001} -b /terminal tmux new-session -A -s openchamber`. The `-b /terminal` flag means the terminal is served at the URL path `/terminal` (e.g. `http://localhost:6001/terminal`). If `UI_PASSWORD` is set, ttyd enforces HTTP Basic auth with username `openchamber`. The host port is controlled by `TTYD_PORT` in `.env` and defaults to one above `OPENCHAMBER_PORT`.
+The container ships a ttyd instance wrapping a persistent tmux session named `openchamber`. The tmux server keeps running in the background, so the session survives browser disconnects and you can reconnect to the same workspace from any browser. ttyd binds to in-container port `5174` (declared by `EXPOSE 5174` in the `Dockerfile`; overridable via the `TTYD_LISTEN_PORT` env var) and is launched by `docker-entrypoint.sh` as `ttyd -p ${TTYD_LISTEN_PORT:-5174} -b /terminal tmux new-session -A -s openchamber`. The `-b /terminal` flag means the terminal is served at the URL path `/terminal` (e.g. `http://localhost:5174/terminal`). If `UI_PASSWORD` is set, ttyd enforces HTTP Basic auth with username `openchamber`. The host port is controlled by `TTYD_PORT` in `.env` and defaults to one above `OPENCHAMBER_PORT`.
 
 ## Persistent Data
 

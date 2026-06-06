@@ -80,6 +80,6 @@ COPY --chmod=0755 docker-entrypoint.sh /home/openchamber/openchamber-entrypoint.
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules /home/openchamber/node_modules
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules/@openchamber/web /home/openchamber/packages/web
 
-EXPOSE 6000 6001
+EXPOSE 5173 5174
 
 ENTRYPOINT ["sh", "/home/openchamber/openchamber-entrypoint.sh"]
