@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM base AS deps
 
-ARG OPENCHAMBER_VERSION=1.12.3
+ARG OPENCHAMBER_VERSION=""
 
 ENV BUN_INSTALL=/opt/bun \
     PATH=/opt/bun/bin:${PATH}
@@ -22,9 +22,9 @@ RUN mkdir -p "${BUN_INSTALL}" \
 FROM oven/bun:1 AS runtime
 WORKDIR /home/openchamber
 
-ARG OPENCODE_VERSION=1.16.2
+ARG OPENCODE_VERSION=""
+ARG TTYD_VERSION=""
 ARG NODE_VERSION=24
-ARG TTYD_VERSION=1.7.7
 
 RUN ln -s /bin/bash /bash
 

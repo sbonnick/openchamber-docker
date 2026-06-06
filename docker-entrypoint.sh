@@ -112,9 +112,9 @@ mkdir -p "$(dirname "${TTYD_LOG}")"
 TTYD_CMD="tmux new-session -A -s openchamber"
 if [ -n "${UI_PASSWORD:-}" ]; then
   # ttyd basic auth (HTTP Basic). Caveat: not encrypted without TLS.
-  TTYD_CMD="ttyd -p ${TTYD_LISTEN_PORT} -b /terminal -c openchamber:${UI_PASSWORD} ${TTYD_CMD}"
+  TTYD_CMD="ttyd -p ${TTYD_LISTEN_PORT} -c openchamber:${UI_PASSWORD} ${TTYD_CMD}"
 else
-  TTYD_CMD="ttyd -p ${TTYD_LISTEN_PORT} -b /terminal ${TTYD_CMD}"
+  TTYD_CMD="ttyd -p ${TTYD_LISTEN_PORT} ${TTYD_CMD}"
 fi
 
 echo "[entrypoint] starting ttyd on port ${TTYD_LISTEN_PORT}..."
