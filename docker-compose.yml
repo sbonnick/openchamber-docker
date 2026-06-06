@@ -4,7 +4,8 @@ services:
     container_name: openchamber
     restart: unless-stopped
     ports:
-      - "${OPENCHAMBER_PORT:-3000}:3000"
+      - "${OPENCHAMBER_PORT:-6000}:6000"
+      - "${TTYD_PORT:-6001}:6001"
     environment:
       UI_PASSWORD: "${OPENCHAMBER_UI_PASSWORD:-}"
       OPENCODE_CONFIG_DIR: "/home/openchamber/.config/opencode"
@@ -18,7 +19,7 @@ services:
       - ./data/ssh:/home/openchamber/.ssh
       - ./data/workspace:/home/openchamber/workspace
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/health >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:6000/health >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5

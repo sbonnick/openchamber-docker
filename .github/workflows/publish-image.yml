@@ -10,8 +10,9 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/sbonnick/openchamber-docker
-  OPENCHAMBER_VERSION: "1.12.0"
-  OPENCODE_VERSION: "1.15.13"
+  OPENCHAMBER_VERSION: "1.12.3"
+  OPENCODE_VERSION: "1.16.2"
+  TTYD_VERSION: "1.7.7"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
