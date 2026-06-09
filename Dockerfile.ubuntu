@@ -29,6 +29,8 @@ ARG OPENCODE_VERSION=""
 ARG TTYD_VERSION=""
 ARG NODE_VERSION=24
 
+RUN ln -s /bin/bash /bash
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates \
   curl \
@@ -58,7 +60,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && chmod +x /usr/local/bin/ttyd \
   && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -g 1000 openchamber \
+RUN userdel -r ubuntu 2>/dev/null || true \
+  && groupadd -g 1000 openchamber \
   && useradd -u 1000 -g 1000 -m -s /bin/bash openchamber \
   && chown -R openchamber:openchamber /home/openchamber
 
