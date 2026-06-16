@@ -11,8 +11,6 @@ fetch_latest_tag() {
 OPENCHAMBER_REPO="openchamber/openchamber"
 OPENCODE_REPO="anomalyco/opencode"
 TTYD_REPO="tsl0922/ttyd"
-CI_FILE=".github/workflows/publish-image.yml"
-DOCKERFILE="Dockerfile"
 COMPOSE_BUILD="docker-compose.build.yml"
 
 # --- Fetch latest ---
@@ -25,19 +23,13 @@ echo "  OpenCode latest:    v${LATEST_OPENCODE}"
 echo "  ttyd latest:        v${LATEST_TTYD}"
 
 # --- Read current ---
-CUR_OC_DOCKER=$(sed -n 's/^ARG OPENCHAMBER_VERSION=//p' "$DOCKERFILE")
-CUR_OK_DOCKER=$(sed -n 's/^ARG OPENCODE_VERSION=//p' "$DOCKERFILE")
-CUR_TT_DOCKER=$(sed -n 's/^ARG TTYD_VERSION=//p' "$DOCKERFILE")
-CUR_OC_CI=$(sed -n 's/^  OPENCHAMBER_VERSION: "\(.*\)"/\1/p' "$CI_FILE")
-CUR_OK_CI=$(sed -n 's/^  OPENCODE_VERSION: "\(.*\)"/\1/p' "$CI_FILE")
-CUR_TT_CI=$(sed -n 's/^  TTYD_VERSION: "\(.*\)"/\1/p' "$CI_FILE")
+CUR_OC_COMPOSE=$(sed -n 's/^        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD")
+CUR_OK_COMPOSE=$(sed -n 's/^        OPENCODE_VERSION: "${OPENCODE_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD")
 CUR_TT_COMPOSE=$(sed -n 's/^        TTYD_VERSION: "${TTYD_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD")
 
 echo ""
 echo "Current versions:"
-echo "  Dockerfile:           OpenChamber=${CUR_OC_DOCKER}  OpenCode=${CUR_OK_DOCKER}  ttyd=${CUR_TT_DOCKER}"
-echo "  CI workflow:          OpenChamber=${CUR_OC_CI}  OpenCode=${CUR_OK_CI}  ttyd=${CUR_TT_CI}"
-echo "  docker-compose.build: ttyd=${CUR_TT_COMPOSE}"
+echo "  docker-compose.build: OpenChamber=${CUR_OC_COMPOSE}  OpenCode=${CUR_OK_COMPOSE}  ttyd=${CUR_TT_COMPOSE}"
 
 UPDATED=false
 
@@ -55,23 +47,11 @@ maybe_update() {
 
 echo ""
 
-maybe_update "OpenChamber" "$CUR_OC_DOCKER" "$LATEST_OPENCHAMBER" "$DOCKERFILE" \
-  "s/^ARG OPENCHAMBER_VERSION=${CUR_OC_DOCKER}/ARG OPENCHAMBER_VERSION=${LATEST_OPENCHAMBER}/"
+maybe_update "OpenChamber" "$CUR_OC_COMPOSE" "$LATEST_OPENCHAMBER" "$COMPOSE_BUILD" \
+  "s/OPENCHAMBER_VERSION: \"\${OPENCHAMBER_VERSION:-${CUR_OC_COMPOSE}}\"/OPENCHAMBER_VERSION: \"\${OPENCHAMBER_VERSION:-${LATEST_OPENCHAMBER}}\"/"
 
-maybe_update "OpenCode" "$CUR_OK_DOCKER" "$LATEST_OPENCODE" "$DOCKERFILE" \
-  "s/^ARG OPENCODE_VERSION=${CUR_OK_DOCKER}/ARG OPENCODE_VERSION=${LATEST_OPENCODE}/"
-
-maybe_update "ttyd" "$CUR_TT_DOCKER" "$LATEST_TTYD" "$DOCKERFILE" \
-  "s/^ARG TTYD_VERSION=${CUR_TT_DOCKER}/ARG TTYD_VERSION=${LATEST_TTYD}/"
-
-maybe_update "OpenChamber" "$CUR_OC_CI" "$LATEST_OPENCHAMBER" "$CI_FILE" \
-  "s/OPENCHAMBER_VERSION: \"${CUR_OC_CI}\"/OPENCHAMBER_VERSION: \"${LATEST_OPENCHAMBER}\"/"
-
-maybe_update "OpenCode" "$CUR_OK_CI" "$LATEST_OPENCODE" "$CI_FILE" \
-  "s/OPENCODE_VERSION: \"${CUR_OK_CI}\"/OPENCODE_VERSION: \"${LATEST_OPENCODE}\"/"
-
-maybe_update "ttyd" "$CUR_TT_CI" "$LATEST_TTYD" "$CI_FILE" \
-  "s/TTYD_VERSION: \"${CUR_TT_CI}\"/TTYD_VERSION: \"${LATEST_TTYD}\"/"
+maybe_update "OpenCode" "$CUR_OK_COMPOSE" "$LATEST_OPENCODE" "$COMPOSE_BUILD" \
+  "s/OPENCODE_VERSION: \"\${OPENCODE_VERSION:-${CUR_OK_COMPOSE}}\"/OPENCODE_VERSION: \"\${OPENCODE_VERSION:-${LATEST_OPENCODE}}\"/"
 
 maybe_update "ttyd" "$CUR_TT_COMPOSE" "$LATEST_TTYD" "$COMPOSE_BUILD" \
   "s/TTYD_VERSION: \"\${TTYD_VERSION:-${CUR_TT_COMPOSE}}\"/TTYD_VERSION: \"\${TTYD_VERSION:-${LATEST_TTYD}}\"/"
@@ -79,7 +59,7 @@ maybe_update "ttyd" "$CUR_TT_COMPOSE" "$LATEST_TTYD" "$COMPOSE_BUILD" \
 echo ""
 if [ "$UPDATED" = true ]; then
   echo "Updates applied. Review and commit with:"
-  echo "  git add ${DOCKERFILE} ${CI_FILE} ${COMPOSE_BUILD} && git commit"
+  echo "  git add ${COMPOSE_BUILD} && git commit"
 else
   echo "All versions are up to date."
 fi
