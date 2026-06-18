@@ -3,8 +3,8 @@ services:
     build:
       context: .
       args:
-        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.13.0}"
-        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.17.7}"
+        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.13.2}"
+        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.17.8}"
         TTYD_VERSION: "${TTYD_VERSION:-1.7.7}"
     image: "${IMAGE_NAME:-ghcr.io/sbonnick/openchamber-docker}:latest"
 
@@ -13,7 +13,7 @@ services:
       context: .
       dockerfile: Dockerfile.ubuntu
       args:
-        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.13.0}"
-        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.17.7}"
+        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.13.2}"
+        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.17.8}"
         TTYD_VERSION: "${TTYD_VERSION:-1.7.7}"
     image: "${IMAGE_NAME:-ghcr.io/sbonnick/openchamber-docker}:ubuntu"

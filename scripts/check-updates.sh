@@ -23,9 +23,9 @@ echo "  OpenCode latest:    v${LATEST_OPENCODE}"
 echo "  ttyd latest:        v${LATEST_TTYD}"
 
 # --- Read current ---
-CUR_OC_COMPOSE=$(sed -n 's/^        OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD")
-CUR_OK_COMPOSE=$(sed -n 's/^        OPENCODE_VERSION: "${OPENCODE_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD")
-CUR_TT_COMPOSE=$(sed -n 's/^        TTYD_VERSION: "${TTYD_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD")
+CUR_OC_COMPOSE=$(sed -n 's/.*OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD" | head -1)
+CUR_OK_COMPOSE=$(sed -n 's/.*OPENCODE_VERSION: "${OPENCODE_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD" | head -1)
+CUR_TT_COMPOSE=$(sed -n 's/.*TTYD_VERSION: "${TTYD_VERSION:-\(.*\)}"/\1/p' "$COMPOSE_BUILD" | head -1)
 
 echo ""
 echo "Current versions:"
@@ -34,11 +34,17 @@ echo "  docker-compose.build: OpenChamber=${CUR_OC_COMPOSE}  OpenCode=${CUR_OK_C
 UPDATED=false
 
 maybe_update() {
-  local label="$1" cur="$2" latest="$3" file="$4" sed_expr="$5"
+  local label="$1" cur="$2" latest="$3" file="$4"
   if [ "$cur" != "$latest" ]; then
     echo ""
     echo "  Updating ${label} in ${file}: ${cur} -> ${latest}"
-    sed -i "$sed_expr" "$file"
+    if [ "$label" = "OpenChamber" ]; then
+      sed -i "s/OPENCHAMBER_VERSION: \"\${OPENCHAMBER_VERSION:-${cur}}\"/OPENCHAMBER_VERSION: \"\${OPENCHAMBER_VERSION:-${latest}}\"/" "$file"
+    elif [ "$label" = "OpenCode" ]; then
+      sed -i "s/OPENCODE_VERSION: \"\${OPENCODE_VERSION:-${cur}}\"/OPENCODE_VERSION: \"\${OPENCODE_VERSION:-${latest}}\"/" "$file"
+    elif [ "$label" = "ttyd" ]; then
+      sed -i "s/TTYD_VERSION: \"\${TTYD_VERSION:-${cur}}\"/TTYD_VERSION: \"\${TTYD_VERSION:-${latest}}\"/" "$file"
+    fi
     UPDATED=true
   else
     echo "  ${label} in ${file} is current (${cur})."
@@ -47,14 +53,11 @@ maybe_update() {
 
 echo ""
 
-maybe_update "OpenChamber" "$CUR_OC_COMPOSE" "$LATEST_OPENCHAMBER" "$COMPOSE_BUILD" \
-  "s/OPENCHAMBER_VERSION: \"\${OPENCHAMBER_VERSION:-${CUR_OC_COMPOSE}}\"/OPENCHAMBER_VERSION: \"\${OPENCHAMBER_VERSION:-${LATEST_OPENCHAMBER}}\"/"
+maybe_update "OpenChamber" "$CUR_OC_COMPOSE" "$LATEST_OPENCHAMBER" "$COMPOSE_BUILD"
 
-maybe_update "OpenCode" "$CUR_OK_COMPOSE" "$LATEST_OPENCODE" "$COMPOSE_BUILD" \
-  "s/OPENCODE_VERSION: \"\${OPENCODE_VERSION:-${CUR_OK_COMPOSE}}\"/OPENCODE_VERSION: \"\${OPENCODE_VERSION:-${LATEST_OPENCODE}}\"/"
+maybe_update "OpenCode" "$CUR_OK_COMPOSE" "$LATEST_OPENCODE" "$COMPOSE_BUILD"
 
-maybe_update "ttyd" "$CUR_TT_COMPOSE" "$LATEST_TTYD" "$COMPOSE_BUILD" \
-  "s/TTYD_VERSION: \"\${TTYD_VERSION:-${CUR_TT_COMPOSE}}\"/TTYD_VERSION: \"\${TTYD_VERSION:-${LATEST_TTYD}}\"/"
+maybe_update "ttyd" "$CUR_TT_COMPOSE" "$LATEST_TTYD" "$COMPOSE_BUILD"
 
 echo ""
 if [ "$UPDATED" = true ]; then
