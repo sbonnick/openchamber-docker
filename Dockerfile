@@ -82,15 +82,9 @@ RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/opench
 USER root
 
 RUN mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}" \
+  && playwright install --with-deps chromium \
   && chown -R openchamber:openchamber "${PLAYWRIGHT_BROWSERS_PATH}" \
-  && playwright install-deps chromium \
   && rm -rf /var/lib/apt/lists/*
-
-USER openchamber
-
-RUN playwright install chromium
-
-USER root
 
 COPY --chmod=0755 docker-entrypoint.sh /home/openchamber/openchamber-entrypoint.sh
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules /home/openchamber/node_modules
