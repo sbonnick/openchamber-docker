@@ -32,6 +32,18 @@ The OpenChamber image uses `oven/bun:1` for both build and runtime stages. Build
 
 The container ships a ttyd instance wrapping a persistent tmux session named `openchamber`. The tmux server keeps running in the background, so the session survives browser disconnects and you can reconnect to the same workspace from any browser. ttyd binds to in-container port `5174` (declared by `EXPOSE 5174` in the `Dockerfile`; overridable via the `TTYD_LISTEN_PORT` env var) and is launched by `docker-entrypoint.sh` as `ttyd -p ${TTYD_LISTEN_PORT:-5174} -b /terminal tmux new-session -A -s openchamber`. The `-b /terminal` flag means the terminal is served at the URL path `/terminal` (e.g. `http://localhost:5174/terminal`). If `UI_PASSWORD` is set, ttyd enforces HTTP Basic auth with username `openchamber`. The host port is controlled by `TTYD_PORT` in `.env` and defaults to one above `OPENCHAMBER_PORT`.
 
+## Headless Browser Testing
+
+The image includes Playwright with headless Chromium installed under `/ms-playwright`. Compose sets `shm_size: "1gb"` to reduce Chromium crashes and maps `host.docker.internal` to the Docker host, so agents can test apps running either inside the container or on the host.
+
+```bash
+docker compose exec openchamber playwright --version
+docker compose exec openchamber playwright screenshot http://host.docker.internal:3000 screenshot.png
+docker compose exec openchamber playwright test
+```
+
+Use `http://127.0.0.1:<port>` for apps running inside the OpenChamber container and `http://host.docker.internal:<port>` for apps running on the Docker host.
+
 ## Persistent Data
 
 The Compose file persists runtime data under `./data`:
@@ -57,6 +69,7 @@ docker compose logs -f openchamber
 docker compose exec openchamber bun --version
 docker compose exec openchamber openchamber --help
 docker compose exec openchamber opencode --version
+docker compose exec openchamber playwright --version
 docker compose exec openchamber tmux attach -t openchamber
 docker compose exec openchamber ttyd --version
 ```

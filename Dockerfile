@@ -25,6 +25,7 @@ WORKDIR /home/openchamber
 ARG OPENCODE_VERSION=""
 ARG TTYD_VERSION=""
 ARG NODE_VERSION=24
+ARG PLAYWRIGHT_VERSION=1.55.0
 
 RUN ln -s /bin/bash /bash
 
@@ -68,11 +69,26 @@ USER openchamber
 
 ENV NODE_ENV=production \
     NPM_CONFIG_PREFIX=/home/openchamber/.npm-global \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
     PATH=/home/openchamber/.npm-global/bin:${PATH}
 
 RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/openchamber/.npm-global && \
   mkdir -p /home/openchamber/.local /home/openchamber/.config /home/openchamber/.ssh /home/openchamber/workspace /home/openchamber/packages && \
-  npm install -g "opencode-ai@${OPENCODE_VERSION}"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install -g \
+    "opencode-ai@${OPENCODE_VERSION}" \
+    "playwright@${PLAYWRIGHT_VERSION}" \
+    "@playwright/test@${PLAYWRIGHT_VERSION}"
+
+USER root
+
+RUN mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}" \
+  && chown -R openchamber:openchamber "${PLAYWRIGHT_BROWSERS_PATH}" \
+  && playwright install-deps chromium \
+  && rm -rf /var/lib/apt/lists/*
+
+USER openchamber
+
+RUN playwright install chromium
 
 USER root
 

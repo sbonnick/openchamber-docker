@@ -3,6 +3,9 @@ services:
     image: ghcr.io/sbonnick/openchamber-docker:latest
     container_name: openchamber
     restart: unless-stopped
+    shm_size: "1gb"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${OPENCHAMBER_PORT:-5173}:5173"
       - "${TTYD_PORT:-5174}:5174"
