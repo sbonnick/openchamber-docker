@@ -15,6 +15,19 @@ mkdir -p \
   "${HOME}/.ssh" \
   "${HOME}/workspace"
 
+# Enable tmux mouse support for proper scrolling in ttyd
+if [ ! -f "${HOME}/.tmux.conf" ]; then
+  cat > "${HOME}/.tmux.conf" <<'TMUXCONF'
+set -g mouse on
+set -g default-terminal "screen-256color"
+set -ga terminal-overrides ",xterm*:Tc"
+set -g history-limit 50000
+set -g escape-time 10
+set -g focus-events on
+set -g mode-keys vi
+TMUXCONF
+fi
+
 RUN_AS_OPENCHAMBER=false
 if [ "$(id -u)" = "0" ]; then
   chown -R openchamber:openchamber \
@@ -22,7 +35,8 @@ if [ "$(id -u)" = "0" ]; then
     "${OPENCODE_CONFIG_DIR}" \
     "${HOME}/.local" \
     "${HOME}/.ssh" \
-    "${HOME}/workspace" 2>/dev/null || true
+    "${HOME}/workspace" \
+    "${HOME}/.tmux.conf" 2>/dev/null || true
 
   if gosu openchamber sh -c 'mkdir -p "$HOME/.config/openchamber/run" "$OPENCODE_CONFIG_DIR" "$HOME/.local/share/opencode/log" "$HOME/.local/state" "$HOME/.ssh" "$HOME/workspace" && test -w "$HOME/.config/openchamber" && test -w "$OPENCODE_CONFIG_DIR" && test -w "$HOME/.local/share/opencode" && test -w "$HOME/.local/state" && test -w "$HOME/.ssh" && test -w "$HOME/workspace"' 2>/dev/null; then
     RUN_AS_OPENCHAMBER=true
