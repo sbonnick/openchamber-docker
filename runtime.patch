@@ -1,6 +1,6 @@
---- a/packages/web/server/lib/terminal/runtime.js
-+++ b/packages/web/server/lib/terminal/runtime.js
-@@ -53,11 +53,15 @@ export function createTerminalRuntime({
+--- a/server/lib/terminal/runtime.js
++++ b/server/lib/terminal/runtime.js
+@@ -64,8 +64,12 @@
          const env = { ...process.env, PATH: buildAugmentedPath(), TERM: 'xterm-256color', COLORTERM: 'truecolor', COLORFGBG: themeMode === 'light' ? '0;15' : '15;0' };
          // The daemon's IPC fd is closed inside the PTY. An explicit override is
          // required because bun-pty also inherits Bun's native process environment.
