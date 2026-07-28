@@ -32,6 +32,7 @@ RUN ln -s /bin/bash /bash
 RUN apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates \
   curl \
+  patch \
   && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
   && apt-get install -y --no-install-recommends \
   bash \
