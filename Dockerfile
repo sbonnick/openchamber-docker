@@ -84,7 +84,7 @@ RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/opench
 USER root
 
 RUN mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}" \
-  && playwright install --with-deps chromium \
+  && playwright install --with-deps chromium-headless-shell \
   && chown -R openchamber:openchamber "${PLAYWRIGHT_BROWSERS_PATH}" \
   && rm -rf /var/lib/apt/lists/*
 

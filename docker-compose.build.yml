@@ -4,9 +4,9 @@ services:
       context: .
       args:
         OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.17.1}"
-        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.18.9}"
+        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.18.11}"
         TTYD_VERSION: "${TTYD_VERSION:-1.7.7}"
-        PLAYWRIGHT_VERSION: "${PLAYWRIGHT_VERSION:-1.62.0}"
+        PLAYWRIGHT_VERSION: "${PLAYWRIGHT_VERSION:-1.62.1}"
     image: "${IMAGE_NAME:-ghcr.io/sbonnick/openchamber-docker}:latest"
 
   openchamber-ubuntu:
@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile.ubuntu
       args:
         OPENCHAMBER_VERSION: "${OPENCHAMBER_VERSION:-1.17.1}"
-        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.18.9}"
+        OPENCODE_VERSION: "${OPENCODE_VERSION:-1.18.11}"
         TTYD_VERSION: "${TTYD_VERSION:-1.7.7}"
-        PLAYWRIGHT_VERSION: "${PLAYWRIGHT_VERSION:-1.62.0}"
+        PLAYWRIGHT_VERSION: "${PLAYWRIGHT_VERSION:-1.62.1}"
     image: "${IMAGE_NAME:-ghcr.io/sbonnick/openchamber-docker}:ubuntu"
