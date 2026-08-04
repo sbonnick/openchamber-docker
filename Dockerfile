@@ -92,7 +92,7 @@ COPY --chmod=0755 docker-entrypoint.sh /home/openchamber/openchamber-entrypoint.
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules /home/openchamber/node_modules
 COPY --from=deps --chown=openchamber:openchamber /opt/bun/install/global/node_modules/@openchamber/web /home/openchamber/packages/web
 COPY runtime.patch /home/openchamber/runtime.patch
-RUN cd /home/openchamber/packages/web && patch --batch -p1 < /home/openchamber/runtime.patch
+# RUN cd /home/openchamber/packages/web && patch --batch -p1 < /home/openchamber/runtime.patch
 
 EXPOSE 5173 5174
 
