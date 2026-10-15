@@ -77,7 +77,7 @@ ENV NODE_ENV=production \
 RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/openchamber/.npm-global && \
   mkdir -p /home/openchamber/.local /home/openchamber/.config /home/openchamber/.ssh /home/openchamber/workspace /home/openchamber/packages && \
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install -g \
-    "opencode-ai@${OPENCODE_VERSION}" \
+    "@opencode/cli@${OPENCODE_VERSION}" \
     "playwright@${PLAYWRIGHT_VERSION}" \
     "@playwright/test@${PLAYWRIGHT_VERSION}"
 
