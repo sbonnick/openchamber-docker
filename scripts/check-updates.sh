@@ -7,6 +7,11 @@ fetch_latest_tag() {
     | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))"
 }
 
+fetch_latest_npm_version() {
+  local package="$1"
+  npm view "$package" version
+}
+
 # --- Config ---
 OPENCHAMBER_REPO="openchamber/openchamber"
 OPENCODE_REPO="anomalyco/opencode"
@@ -17,7 +22,9 @@ COMPOSE_BUILD="docker-compose.build.yml"
 # --- Fetch latest ---
 echo "Fetching latest releases..."
 LATEST_OPENCHAMBER=$(fetch_latest_tag "$OPENCHAMBER_REPO")
-LATEST_OPENCODE=$(fetch_latest_tag "$OPENCODE_REPO")
+# OpenCode 2.x is published as the @opencode/cli npm package. The GitHub
+# releases endpoint currently reports an older 1.x release.
+LATEST_OPENCODE=$(fetch_latest_npm_version "@opencode/cli")
 LATEST_TTYD=$(fetch_latest_tag "$TTYD_REPO")
 LATEST_PLAYWRIGHT=$(fetch_latest_tag "$PLAYWRIGHT_REPO")
 echo "  OpenChamber latest: v${LATEST_OPENCHAMBER}"
